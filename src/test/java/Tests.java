@@ -1,6 +1,4 @@
-import com.google.common.util.concurrent.Runnables;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;

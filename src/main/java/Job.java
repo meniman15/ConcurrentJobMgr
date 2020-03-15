@@ -1,4 +1,3 @@
-import java.util.Comparator;
 
 public class Job implements Comparable<Job> {
     int jobNumber;
