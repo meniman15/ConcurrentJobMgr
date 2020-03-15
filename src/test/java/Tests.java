@@ -73,7 +73,8 @@ public class Tests {
     @Test
     public void insertAndThenGetInConcurrentWay_success(){
         final TaskMgr taskMgr = new TaskMgr();
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(6);
+        final int NUMBER_OF_THREADS = 6;
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NUMBER_OF_THREADS);
         Runnable insertJob = new Runnable() {
             @Override
             public void run() {
@@ -104,14 +105,14 @@ public class Tests {
         };
 
         try {
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < NUMBER_OF_THREADS; i++) {
                 if (i % 2 == 0) {
                     executor.execute(insertJob);
                 } else {
                     executor.execute(removeJob);
                 }
             }
-            while (executor.getCompletedTaskCount() < 6){
+            while (executor.getCompletedTaskCount() < NUMBER_OF_THREADS){
                 executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
             }
             Assert.assertEquals(taskMgr.getQueue().size(),0);
