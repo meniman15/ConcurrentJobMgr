@@ -1,3 +1,4 @@
+import com.google.common.util.concurrent.Runnables;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -5,6 +6,7 @@ import org.junit.Test;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Tests {
 
@@ -71,35 +73,51 @@ public class Tests {
     @Test
     public void insertAndThenGetInConcurrentWay_success(){
         final TaskMgr taskMgr = new TaskMgr();
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
-        try {
-            for (int i = 0; i < 10; i++) {
-                if (i % 2 == 0) {
-                    executor.execute(new Runnable() {
-                        public void run() {
-                            boolean success = taskMgr.insertTask(1, 1);
-                            if (!success) {
-                                throw new RuntimeException("Insert falied");
-                            }
-                        }
-                    });
-                    Thread.sleep(10);
-                } else {
-                    executor.execute(new Runnable() {
-                        public void run() {
-                            int jobNum = taskMgr.getNextJob();
-                            if (jobNum == -1) {
-                                throw new RuntimeException("remove falied");
-                            }
-                        }
-                    });
-                    Thread.sleep(10);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(6);
+        Runnable insertJob = new Runnable() {
+            @Override
+            public void run() {
+                boolean success = taskMgr.insertTask(1, 1);
+                System.out.println("Completed insert");
+                if (!success) {
+                    throw new RuntimeException("Insert falied");
                 }
+            }
+        };
+        Runnable removeJob = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (taskMgr.getQueue().isEmpty()){
+                        System.out.println("waiting until queue is not empty");
+                    }
+                    int jobNum = taskMgr.getNextJob();
+                    System.out.println("Completed remove");
+                    if (jobNum == -1) {
+                        throw new RuntimeException("remove falied");
+                    }
+                }
+                catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        };
+
+        try {
+            for (int i = 0; i < 6; i++) {
+                if (i % 2 == 0) {
+                    executor.execute(insertJob);
+                } else {
+                    executor.execute(removeJob);
+                }
+            }
+            while (executor.getCompletedTaskCount() < 6){
+                executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
             }
             Assert.assertEquals(taskMgr.getQueue().size(),0);
         }
         catch (Exception e){
-            Assert.fail();
+            Assert.fail("got exception: " + e);
         }
     }
 }
