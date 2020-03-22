@@ -23,5 +23,4 @@ public class Job implements Comparable<Job> {
     public int compareTo(Job o) {
         return o.priority.ordinal() - this.priority.ordinal();
     }
-
 }

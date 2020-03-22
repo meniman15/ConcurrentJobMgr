@@ -13,8 +13,7 @@ public class TaskMgr implements TaskManager {
         }
         if (queue.size() < MAX_TASKS){
             Job job = new Job(jobNumber,Job.Priority.values()[priority]);
-            queue.add(job);
-            return true;
+            return queue.offer(job);
         }
         else
             return false;
@@ -34,7 +33,7 @@ public class TaskMgr implements TaskManager {
             return result;
         }
         catch (Exception e) {
-            return false;
+            return result;
         }
         finally{
             try{
@@ -47,7 +46,8 @@ public class TaskMgr implements TaskManager {
     }
 
     public int getNextJob(){
-        if (queue.isEmpty()){
+        //size() is needed in order to ensure proper locking. (not isEmpty())
+        if (queue.size() == 0){
             return -1;
         }
         return queue.remove().jobNumber;

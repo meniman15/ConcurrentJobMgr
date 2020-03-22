@@ -9,10 +9,9 @@ public class BoundedBlockingPriorityQueue<T> extends PriorityBlockingQueue<T> {
 
         @Override
         public boolean offer(T e) {
-            boolean success = super.offer(e);
-            if(!success || this.size() >= maxItems){
+            if (this.size() >= maxItems){
                 return false;
             }
-            return true;
+            return super.offer(e);
         }
 }
